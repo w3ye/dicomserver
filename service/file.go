@@ -14,7 +14,6 @@ import (
 )
 
 type FileService struct {
-	tag      dicomTag.Tag
 	filePath string
 	Encoder  interface {
 		Encode(w io.Writer, m image.Image) error
