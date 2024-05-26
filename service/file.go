@@ -3,14 +3,22 @@ package service
 import (
 	"bytes"
 	"fmt"
+	"image"
+	"io"
 	"mime/multipart"
 	"os"
 
 	"github.com/google/uuid"
+	"github.com/suyashkumar/dicom"
+	dicomTag "github.com/suyashkumar/dicom/pkg/tag"
 )
 
 type FileService struct {
+	tag      dicomTag.Tag
 	filePath string
+	Encoder  interface {
+		Encode(w io.Writer, m image.Image) error
+	}
 }
 
 func NewFileService() *FileService {
@@ -32,6 +40,14 @@ func (f FileService) WriteFile(fileHeader *multipart.FileHeader) (string, error)
 		return "", err
 	}
 
+	// validate the file
+	_, err = dicom.Parse(file, fileHeader.Size, nil)
+	if err != nil {
+		return "", err
+	}
+	// reset the file pointer to the beginning of the file
+	file.Seek(0, io.SeekStart)
+
 	buf := bytes.NewBuffer(nil)
 	if _, err := buf.ReadFrom(file); err != nil {
 		return "", err
@@ -39,21 +55,89 @@ func (f FileService) WriteFile(fileHeader *multipart.FileHeader) (string, error)
 
 	id := uuid.New().String()
 
-	filePath := "store"
 	if err := os.WriteFile(
-		fmt.Sprintf("%s/%s", filePath, id),
+		fmt.Sprintf("%s/%s", f.filePath, id),
 		buf.Bytes(),
 		0666,
 	); err != nil {
 		// check if the file exists, if there's no error, the file exists
-		if _, err := os.Stat(fmt.Sprintf("%s/%s.dicom", filePath, id)); err == nil {
+		if _, err := os.Stat(fmt.Sprintf("%s/%s.dicom", f.filePath, id)); err == nil {
 			// remove the file
-			os.Remove(fmt.Sprintf("%s/%s.dicom", filePath, id))
+			os.Remove(fmt.Sprintf("%s/%s.dicom", f.filePath, id))
 		}
+		return "", err
 	}
 	return id, nil
 }
 
-func (f FileService) GetFileHeaders() {}
+type GetDicomHeaderAttributeResponse struct {
+	Tag   string `json:"tag"`
+	Name  string `json:"name"`
+	VR    string `json:"vr"`
+	Value string `json:"value"`
+}
 
-func (f FileService) GetImage() {}
+func (f FileService) GetDicomHeaders(id string, query string) (*GetDicomHeaderAttributeResponse, error) {
+	tagQuery := queryTag(query)
+	tag, err := tagQuery.convertQueryTagToDicomTag()
+	if err != nil {
+		return nil, err
+	}
+
+	tagInfo, err := dicomTag.Find(tag)
+	if err != nil {
+		return nil, err
+	}
+
+	dataset, err := dicom.ParseFile(fmt.Sprintf("%s/%s", f.filePath, id), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	element, err := dataset.FindElementByTag(tag)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDicomHeaderAttributeResponse{
+		Tag:   tagInfo.Tag.String(),
+		Name:  tagInfo.Name,
+		VR:    tagInfo.VR,
+		Value: element.Value.String(),
+	}
+
+	return response, nil
+}
+
+func (f *FileService) SetImageEncoder(fileType string) {
+	switch fileType {
+	case "png":
+		f.Encoder = PNGEncoder{}
+	case "jpg":
+		f.Encoder = JPEGEncoder{}
+	}
+}
+
+func (f FileService) GetDicomImage(id string) ([]byte, error) {
+	dataset, err := dicom.ParseFile(fmt.Sprintf("%s/%s", f.filePath, id), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	element, err := dataset.FindElementByTag(dicomTag.PixelData)
+	if err != nil {
+		return nil, err
+	}
+
+	pixelDataInfo := dicom.MustGetPixelDataInfo(element.Value)
+
+	buf := bytes.NewBuffer(nil)
+	for _, frame := range pixelDataInfo.Frames {
+		img, err := frame.GetImage()
+		if err != nil {
+			return nil, err
+		}
+		f.Encoder.Encode(buf, img)
+	}
+	return buf.Bytes(), nil
+}

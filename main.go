@@ -21,9 +21,9 @@ func main() {
 		fileHandler := handlers.NewFileHandler(fileService)
 
 		// GET /file/:id
-		fileRouter.GET("/:id")
+		fileRouter.GET("/:id", fileHandler.GetFileHeaders)
 		// GET /file/:id/image
-		fileRouter.GET("/:id/image")
+		fileRouter.GET("/:id/image", fileHandler.GetImage)
 		// POST /file/:id/upload
 		fileRouter.POST("/upload", fileHandler.UploadFile)
 	}
