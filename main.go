@@ -1,6 +1,11 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"dicomserver/handlers"
+	"dicomserver/service"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 	r := gin.Default()
@@ -12,12 +17,15 @@ func main() {
 
 	fileRouter := r.Group("file")
 	{
+		fileService := service.NewFileService()
+		fileHandler := handlers.NewFileHandler(fileService)
+
 		// GET /file/:id
 		fileRouter.GET("/:id")
 		// GET /file/:id/image
 		fileRouter.GET("/:id/image")
 		// POST /file/:id/upload
-		fileRouter.POST("/:id/upload")
+		fileRouter.POST("/upload", fileHandler.UploadFile)
 	}
 
 	r.Run()
