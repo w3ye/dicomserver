@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -118,6 +119,9 @@ func (f *FileService) SetImageEncoder(fileType string) {
 }
 
 func (f FileService) GetDicomImage(id string) ([]byte, error) {
+	if f.Encoder == nil {
+		return nil, errors.New("image encoder not set")
+	}
 	dataset, err := dicom.ParseFile(fmt.Sprintf("%s/%s", f.filePath, id), nil)
 	if err != nil {
 		return nil, err
