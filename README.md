@@ -6,6 +6,9 @@ This application is desgined for 3 specific functionalities:
 2. Users can retrieve the DICOM file header attributes through [tags](https://www.dicomlibrary.com/dicom/dicom-tags/)
 3. Users can retrieve the file as an image as PNG/JPG
 
+This application implements the repository pattern it is a good way to separate logic between the controller, service and repository.
+Since there isn't a requirement to implement a database, the repository is not implemented.
+
 ## Issues
 Using the [Go DICOM Library](https://github.com/suyashkumar/dicom) causes the conversion to PNG/JPG to become pitch black in the response.
 It appears that there's missing auto-scaling in the `frames` and `nativeFrames` `GetImage` function.
