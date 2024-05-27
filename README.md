@@ -112,11 +112,12 @@ Example response
 ## Dependencies
 go v1.22.3
 
-air v1.52.0
+air v1.52.0 - Live reloading
 
 docker v24.0.7
 
 docker-compose v2.23.3
 
-github.com/google/uuid v1.6.0
-github.com/suyashkumar/dicom v1.0.7
+github.com/google/uuid v1.6.0 - uuid generation
+
+github.com/suyashkumar/dicom v1.0.7 - DICOM parser
