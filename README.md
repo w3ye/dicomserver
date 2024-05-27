@@ -29,9 +29,9 @@ The solution to have this work requires going into a photo editor and manually c
 | HTTP Methods | Endpoint | Parameters | Tags | Description |
 | ---- | ---- | ---- | ---- | ---- |
 | GET | /ping | N/A | N/A | Pings the server, should return pong in the response |
-| POST | /redis/upload | N/A | N/A | Upload a DICOM file and a file ID is returned in the response |
-| GET | /redis/:id | id - file ID | N/A | Retrieves the header attribues of an uploaded DICOM file |
-| GET | /redis/:id/image | id - file ID | fileType: png/jpg | Converts an existing DICOM file to either PNG/JPG and returns it to the user |
+| POST | /redisFile/upload | N/A | N/A | Upload a DICOM file and a file ID is returned in the response |
+| GET | /redisFile/:id | id - file ID | N/A | Retrieves the header attribues of an uploaded DICOM file |
+| GET | /redisFile/:id/image | id - file ID | fileType: png/jpg | Converts an existing DICOM file to either PNG/JPG and returns it to the user |
 
 ## Getting Started
 This project will start on port `8080`
