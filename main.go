@@ -6,7 +6,6 @@ import (
 	"dicomserver/handlers"
 	"dicomserver/repositories"
 	"dicomserver/service"
-	"fmt"
 	"log"
 	"os"
 
@@ -18,15 +17,18 @@ func main() {
 	ctx := context.Background()
 
 	address := os.Getenv("REDIS")
-	fmt.Println("before: ", address)
 	if address == "" {
 		address = "localhost:6379"
 	}
-	fmt.Println("host: ", address)
 
 	client, err := db.NewRedisClient(ctx, address)
 	if err != nil {
 		log.Println(err)
+	}
+
+	shouldExposeRedisEndpoints := true
+	if err := client.Client.Ping(ctx).Err(); err != nil {
+		shouldExposeRedisEndpoints = false
 	}
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -49,18 +51,20 @@ func main() {
 		fileRouter.POST("/upload", fileHandler.UploadFile)
 	}
 
-	redisFileRouter := r.Group("redisFile")
-	{
-		redisFileRepo := repositories.NewRedisFileRepository(client)
-		redisFileService := service.NewFileService(redisFileRepo)
-		redisFileHandler := handlers.NewFileHandler(redisFileService)
+	if shouldExposeRedisEndpoints {
+		redisFileRouter := r.Group("redisFile")
+		{
+			redisFileRepo := repositories.NewRedisFileRepository(client)
+			redisFileService := service.NewFileService(redisFileRepo)
+			redisFileHandler := handlers.NewFileHandler(redisFileService)
 
-		// POST redisFile/upload
-		redisFileRouter.POST("/upload", redisFileHandler.UploadFile)
-		// GET redisFile/:id
-		redisFileRouter.GET("/:id", redisFileHandler.GetFileHeaders)
-		// GET redisFile/:id/image
-		redisFileRouter.GET("/:id/image", redisFileHandler.GetImage)
+			// POST redisFile/upload
+			redisFileRouter.POST("/upload", redisFileHandler.UploadFile)
+			// GET redisFile/:id
+			redisFileRouter.GET("/:id", redisFileHandler.GetFileHeaders)
+			// GET redisFile/:id/image
+			redisFileRouter.GET("/:id/image", redisFileHandler.GetImage)
+		}
 	}
 
 	r.Run()
