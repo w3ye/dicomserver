@@ -4,6 +4,7 @@ import (
 	"dicomserver/repositories"
 	"image"
 	"io"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -162,9 +163,12 @@ func TestFileService_GetDicomImage(t *testing.T) {
 				t.Errorf("FileService.GetDicomImage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.emptyBytes && len(got) != 0 {
+			if tt.emptyBytes && len(got) != 0 || !tt.emptyBytes && len(got) == 0 {
 				t.Errorf("FileService.GetDicomImage() = %v, want %v", got, tt.emptyBytes)
 			}
 		})
+	}
+	if err := os.Remove("../test_file2"); err != nil {
+		t.Error("Failed to remove test_file2")
 	}
 }
