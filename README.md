@@ -7,7 +7,8 @@ This application is desgined for 3 specific functionalities:
 3. Users can retrieve the file as an image as PNG/JPG
 
 This application implements the repository pattern it is a good way to separate logic between the controller, service and repository.
-To showcase this better I've implemented a redis db
+To showcase this better I've implemented a redis db.
+If there's no active connection the redis endpoint will now be established.
 
 ## Issues
 Using the [Go DICOM Library](https://github.com/suyashkumar/dicom) causes the conversion to PNG/JPG to become pitch black in the response.
@@ -35,7 +36,9 @@ The solution to have this work requires going into a photo editor and manually c
 
 ## Getting Started
 This project will start on port `8080`
+Redis will start on `6379`
 ### Via Docker
+Running
 Pull down the repository start the project
 ```bash
 git clone https://github.com/w3ye/dicomserver.git
@@ -142,4 +145,5 @@ docker-compose v2.23.3
 
 github.com/google/uuid v1.6.0 - uuid generation
 
+redis v7.2.4 - temporary DB
 github.com/suyashkumar/dicom v1.0.7 - DICOM parser
