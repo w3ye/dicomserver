@@ -1,9 +1,8 @@
 {
 	"info": {
-		"_postman_id": "89dd8b3e-ae38-45c4-a808-7296b10850b3",
+		"_postman_id": "c54d1bb2-2fe5-4507-bd73-a31d0abeaa3c",
 		"name": "dicom_server",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "18676330"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
@@ -31,10 +30,9 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.globals.get(\"id\");"
+							"pm.globals.set(\"id\", pm.response.json()[\"id\"]);"
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -47,7 +45,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/Users/william/dicomserver/test_file/IM000001"
+							"src": []
 						}
 					]
 				},
@@ -71,13 +69,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/file?tag=(0002,0000)",
+					"raw": "localhost:8080/file/{{id}}?tag=(0002,0000)",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"file"
+						"file",
+						"{{id}}"
 					],
 					"query": [
 						{
@@ -95,26 +94,20 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/file/:id/image?fileType=png",
+					"raw": "localhost:8080/file/{{id}}/image?fileType=png",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
 						"file",
-						":id",
+						"{{id}}",
 						"image"
 					],
 					"query": [
 						{
 							"key": "fileType",
 							"value": "png"
-						}
-					],
-					"variable": [
-						{
-							"key": "id",
-							"value": "a178adba-2a64-4c11-be5a-add8ce85c354"
 						}
 					]
 				}
