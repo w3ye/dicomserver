@@ -3,34 +3,29 @@ package service
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"image"
 	"io"
 	"mime/multipart"
-	"os"
 
-	"github.com/google/uuid"
 	"github.com/suyashkumar/dicom"
 	dicomTag "github.com/suyashkumar/dicom/pkg/tag"
 )
 
+type fileServiceRepo interface {
+	Write(bytes []byte) (string, error)
+	GetDataset(id string) (dicom.Dataset, error)
+}
+
 type FileService struct {
-	filePath string
-	Encoder  interface {
+	repo    fileServiceRepo
+	Encoder interface {
 		Encode(w io.Writer, m image.Image) error
 	}
 }
 
-func NewFileService() *FileService {
-	// establish a local file path
-	filepath := "store"
-	// if filePath does not exist, create it
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		os.Mkdir(filepath, 0777)
-	}
-
+func NewFileService(repo fileServiceRepo) *FileService {
 	return &FileService{
-		filePath: filepath,
+		repo: repo,
 	}
 }
 
@@ -53,18 +48,8 @@ func (f FileService) WriteFile(fileHeader *multipart.FileHeader) (string, error)
 		return "", err
 	}
 
-	id := uuid.New().String()
-
-	if err := os.WriteFile(
-		fmt.Sprintf("%s/%s", f.filePath, id),
-		buf.Bytes(),
-		0666,
-	); err != nil {
-		// check if the file exists, if there's no error, the file exists
-		if _, err := os.Stat(fmt.Sprintf("%s/%s.dicom", f.filePath, id)); err == nil {
-			// remove the file
-			os.Remove(fmt.Sprintf("%s/%s.dicom", f.filePath, id))
-		}
+	id, err := f.repo.Write(buf.Bytes())
+	if err != nil {
 		return "", err
 	}
 	return id, nil
@@ -89,7 +74,7 @@ func (f FileService) GetDicomHeaders(id string, query string) (*GetDicomHeaderAt
 		return nil, err
 	}
 
-	dataset, err := dicom.ParseFile(fmt.Sprintf("%s/%s", f.filePath, id), nil)
+	dataset, err := f.repo.GetDataset(id)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +107,8 @@ func (f FileService) GetDicomImage(id string) ([]byte, error) {
 	if f.Encoder == nil {
 		return nil, errors.New("image encoder not set")
 	}
-	dataset, err := dicom.ParseFile(fmt.Sprintf("%s/%s", f.filePath, id), nil)
+
+	dataset, err := f.repo.GetDataset(id)
 	if err != nil {
 		return nil, err
 	}

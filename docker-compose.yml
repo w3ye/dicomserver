@@ -5,3 +5,9 @@ services:
     build: .
     ports:
       - "8080:8080"
+    environment:
+      - REDIS=redis:6379
+  redis:
+    image: "redis"
+    ports:
+      - 6379:6379

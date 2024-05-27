@@ -32,14 +32,15 @@ func (f FileHandler) UploadFile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	id, err := f.service.WriteFile(fileHeader)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "tag format should be in the format of (XXXX,XXXX)",
+			"error": err.Error(),
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id})
@@ -51,18 +52,21 @@ func (f FileHandler) GetFileHeaders(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "file id is required",
 		})
+		return
 	}
 	tagQuery := c.Query("tag")
 	if tagQuery == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "tag is required",
 		})
+		return
 	}
 	dicomHeader, err := f.service.GetDicomHeaders(fileId, tagQuery)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, dicomHeader)
@@ -74,6 +78,7 @@ func (f FileHandler) GetImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "file id is required",
 		})
+		return
 	}
 	supportedFileTypes := map[string]bool{
 		"png": true,
@@ -84,6 +89,7 @@ func (f FileHandler) GetImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "file type is required and should be one of png, jpg",
 		})
+		return
 	}
 	// set the content type based on the file type
 	var contentType string
@@ -102,6 +108,7 @@ func (f FileHandler) GetImage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	c.Data(http.StatusOK, contentType, image)

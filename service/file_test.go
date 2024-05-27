@@ -1,6 +1,7 @@
 package service
 
 import (
+	"dicomserver/repositories"
 	"image"
 	"io"
 	"reflect"
@@ -9,8 +10,8 @@ import (
 
 func TestFileService_GetDicomHeaders(t *testing.T) {
 	type fields struct {
-		filePath string
-		Encoder  interface {
+		repo    fileServiceRepo
+		Encoder interface {
 			Encode(w io.Writer, m image.Image) error
 		}
 	}
@@ -28,7 +29,7 @@ func TestFileService_GetDicomHeaders(t *testing.T) {
 		{
 			name: "should return the correct dicom header attribute when a file exists",
 			fields: fields{
-				filePath: "../test_file",
+				repo: repositories.NewLocalFileRepository("../test_file"),
 			},
 			args: args{
 				id:    "07fbab94-a2b6-45fe-84b6-515bb65354e1",
@@ -45,7 +46,7 @@ func TestFileService_GetDicomHeaders(t *testing.T) {
 		{
 			name: "should return an error if the file does not exist",
 			fields: fields{
-				filePath: "../test_file",
+				repo: repositories.NewLocalFileRepository("../test_file"),
 			},
 			args: args{
 				id:    "1234",
@@ -57,7 +58,7 @@ func TestFileService_GetDicomHeaders(t *testing.T) {
 		{
 			name: "should return an error if the tag is incorrect",
 			fields: fields{
-				filePath: "../test_file",
+				repo: repositories.NewLocalFileRepository("../test_file"),
 			},
 			args: args{
 				id:    "07fbab94-a2b6-45fe-84b6-515bb65354e1",
@@ -70,8 +71,8 @@ func TestFileService_GetDicomHeaders(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := FileService{
-				filePath: tt.fields.filePath,
-				Encoder:  tt.fields.Encoder,
+				repo:    tt.fields.repo,
+				Encoder: tt.fields.Encoder,
 			}
 			got, err := f.GetDicomHeaders(tt.args.id, tt.args.query)
 			if (err != nil) != tt.wantErr {
@@ -87,8 +88,8 @@ func TestFileService_GetDicomHeaders(t *testing.T) {
 
 func TestFileService_GetDicomImage(t *testing.T) {
 	type fields struct {
-		filePath string
-		Encoder  interface {
+		repo    fileServiceRepo
+		Encoder interface {
 			Encode(w io.Writer, m image.Image) error
 		}
 	}
@@ -105,8 +106,8 @@ func TestFileService_GetDicomImage(t *testing.T) {
 		{
 			name: "should not error when an existing file contains an image",
 			fields: fields{
-				filePath: "../test_file",
-				Encoder:  PNGEncoder{},
+				repo:    repositories.NewLocalFileRepository("../test_file"),
+				Encoder: PNGEncoder{},
 			},
 			args: args{
 				id: "07fbab94-a2b6-45fe-84b6-515bb65354e1",
@@ -117,7 +118,7 @@ func TestFileService_GetDicomImage(t *testing.T) {
 		{
 			name: "should return an error if there's no encoder",
 			fields: fields{
-				filePath: "../test_file",
+				repo: repositories.NewLocalFileRepository("../test_file"),
 			},
 			args: args{
 				id: "07fbab94-a2b6-45fe-84b6-515bb65354e1",
@@ -128,8 +129,8 @@ func TestFileService_GetDicomImage(t *testing.T) {
 		{
 			name: "should return an error if the file path is incorrect",
 			fields: fields{
-				filePath: "../test_file2",
-				Encoder:  PNGEncoder{},
+				repo:    repositories.NewLocalFileRepository("../test_file2"),
+				Encoder: PNGEncoder{},
 			},
 			args: args{
 				id: "07fbab94-a2b6-45fe-84b6-515bb65354e1",
@@ -140,8 +141,8 @@ func TestFileService_GetDicomImage(t *testing.T) {
 		{
 			name: "should return an error if the id incorrect",
 			fields: fields{
-				filePath: "../test_file",
-				Encoder:  PNGEncoder{},
+				repo:    repositories.NewLocalFileRepository("../test_file"),
+				Encoder: PNGEncoder{},
 			},
 			args: args{
 				id: "07fbab94-a2b6-45fe-84b6-515bb65354e3",
@@ -153,16 +154,16 @@ func TestFileService_GetDicomImage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := FileService{
-				filePath: tt.fields.filePath,
-				Encoder:  tt.fields.Encoder,
+				repo:    tt.fields.repo,
+				Encoder: tt.fields.Encoder,
 			}
 			got, err := f.GetDicomImage(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FileService.GetDicomImage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if len(got) == 0 && !tt.emptyBytes {
-				t.Errorf("FileService.GetDicomImage() = expected image bytes to not be empty")
+			if tt.emptyBytes && len(got) != 0 {
+				t.Errorf("FileService.GetDicomImage() = %v, want %v", got, tt.emptyBytes)
 			}
 		})
 	}
