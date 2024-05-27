@@ -65,6 +65,8 @@ In a seperate tab
 git clone https://github.com/w3ye/dicomserver.git
 cd dicomserver
 go run main.go
+# OR
+air
 ```
 ## Testing the endpoints
 ### Via Postman
@@ -137,6 +139,8 @@ Example response
 ## Dependencies
 go v1.22.3
 
+redis v7.2.4 - temporary DB
+
 air v1.52.0 - Live reloading
 
 docker v24.0.7
@@ -145,5 +149,4 @@ docker-compose v2.23.3
 
 github.com/google/uuid v1.6.0 - uuid generation
 
-redis v7.2.4 - temporary DB
 github.com/suyashkumar/dicom v1.0.7 - DICOM parser
