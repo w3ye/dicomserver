@@ -7,7 +7,7 @@ This application is desgined for 3 specific functionalities:
 3. Users can retrieve the file as an image as PNG/JPG
 
 This application implements the repository pattern it is a good way to separate logic between the controller, service and repository.
-Since there isn't a requirement to implement a database, the repository is not implemented.
+To showcase this better I've implemented a redis db
 
 ## Issues
 Using the [Go DICOM Library](https://github.com/suyashkumar/dicom) causes the conversion to PNG/JPG to become pitch black in the response.
@@ -18,12 +18,20 @@ The solution to have this work requires going into a photo editor and manually c
 - https://github.com/suyashkumar/dicom/issues/301
    
 ## API Endpoints
+### Local file system - using os
 | HTTP Methods | Endpoint | Parameters | Tags | Description |
 | ---- | ---- | ---- | ---- | ---- |
 | GET | /ping | N/A | N/A | Pings the server, should return pong in the response |
 | POST | /file/upload | N/A | N/A | Upload a DICOM file and a file ID is returned in the response |
 | GET | /file/:id | id - file ID | N/A | Retrieves the header attribues of an uploaded DICOM file |
-| GET | /file/:id/image | id - file ID | fileType: png/jpg | Converts an existing DICOM file to either PNG/JPG and returns it to the user | 
+| GET | /file/:id/image | id - file ID | fileType: png/jpg | Converts an existing DICOM file to either PNG/JPG and returns it to the user |
+### Same endpoints but using redis
+| HTTP Methods | Endpoint | Parameters | Tags | Description |
+| ---- | ---- | ---- | ---- | ---- |
+| GET | /ping | N/A | N/A | Pings the server, should return pong in the response |
+| POST | /redis/upload | N/A | N/A | Upload a DICOM file and a file ID is returned in the response |
+| GET | /redis/:id | id - file ID | N/A | Retrieves the header attribues of an uploaded DICOM file |
+| GET | /redis/:id/image | id - file ID | fileType: png/jpg | Converts an existing DICOM file to either PNG/JPG and returns it to the user |
 
 ## Getting Started
 This project will start on port `8080`
@@ -39,6 +47,17 @@ To stop the container
 docker compose down --remove-orphans
 ```
 ### Via Local
+Only run the local file version
+```bash
+git clone https://github.com/w3ye/dicomserver.git
+cd dicomserver
+go run main.go
+```
+To run the redis version as well
+```bash
+redis-server
+```
+In a seperate tab
 ```bash
 git clone https://github.com/w3ye/dicomserver.git
 cd dicomserver
@@ -48,6 +67,8 @@ go run main.go
 ### Via Postman
 Import the collection `dicom_server.postman_collection.json` at the root of the directory
 ![image](https://github.com/w3ye/dicomserver/assets/33244107/be168003-88aa-470f-8314-8fb5ede0879c)
+
+To run the ping the redis endpoints please replace `/file` with `/redisFile`
 
 The `upload` endpoint should be called first. It will set the `id` as a global variable so other endpoints could use
 To call the upload endpoint you must add the file first. Within postman `Body` -> `form-data` -> `Select Files`
@@ -61,6 +82,7 @@ Exmampe response after manual editing
 ![image](https://github.com/w3ye/dicomserver/assets/33244107/fb24ec90-f535-48a5-8270-7caf9a69f85f)
 
 ### Via CURL
+To call the redis server please replace `/file` with `/redisFile`
 `GET /ping`
 ```curl
 curl http://localhost:8080/ping
