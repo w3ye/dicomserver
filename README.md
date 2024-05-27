@@ -50,6 +50,13 @@ The `upload` endpoint should be called first. It will set the `id` as a global v
 To call the upload endpoint you must add the file first. Within postman `Body` -> `form-data` -> `Select Files`
 ![image](https://github.com/w3ye/dicomserver/assets/33244107/d44c27ae-180d-45a3-8eae-029addf1e526)
 
+If the `GET /file/:id/image` endpoint ever returns a black box. Save the response as a png file. Open the file in a photo editor and adjust the brightness, contrast and exposure
+![image](https://github.com/w3ye/dicomserver/assets/33244107/2ab81ea2-4605-45e0-a475-6e059a79eaa1)
+![image](https://github.com/w3ye/dicomserver/assets/33244107/fe8300bb-51ff-4b6f-b46f-cda6989ac388)
+
+Exmampe response after manual editing
+![image](https://github.com/w3ye/dicomserver/assets/33244107/fb24ec90-f535-48a5-8270-7caf9a69f85f)
+
 ### Via CURL
 `GET /ping`
 ```curl
@@ -101,8 +108,12 @@ Example response
 
 ## Dependencies
 go v1.22.3
+
 air v1.52.0
+
 docker v24.0.7
+
 docker-compose v2.23.3
+
 github.com/google/uuid v1.6.0
 github.com/suyashkumar/dicom v1.0.7
