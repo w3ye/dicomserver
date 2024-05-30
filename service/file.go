@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime/multipart"
 
+	"github.com/nfnt/resize"
 	"github.com/suyashkumar/dicom"
 	dicomTag "github.com/suyashkumar/dicom/pkg/tag"
 )
@@ -126,7 +127,10 @@ func (f FileService) GetDicomImage(id string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		f.Encoder.Encode(buf, img)
+		width := uint(img.Bounds().Max.Y * 1)
+		height := uint(img.Bounds().Max.Y * 1)
+		scaledImage := resize.Resize(width, height, img, resize.Lanczos3)
+		f.Encoder.Encode(buf, scaledImage)
 	}
 	return buf.Bytes(), nil
 }
